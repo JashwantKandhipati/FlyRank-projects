@@ -46,4 +46,4 @@ content-type: application/json
 
 Here is the database table schema (`\dt`) and seeded data verified via `psql`:
 
-![Database Verification](./db-screenshot.png)]
+![Database Verification](./db-screenshot.png)
