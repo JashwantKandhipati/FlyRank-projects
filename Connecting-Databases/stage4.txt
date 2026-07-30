@@ -1,0 +1,1 @@
+Query: SELECT COUNT(*) FROM tasks; - Returned total row count (3 tasks).
