@@ -1,0 +1,22 @@
+# Python Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# SQLite Database (Assignment specifies each clone should generate its own DB fresh)
+tasks.db
+*.db
+*.sqlite3
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS System Files
+.DS_Store
+
+# IDE & Editor Files
+.vscode/
+.idea/
