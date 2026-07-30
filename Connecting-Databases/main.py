@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
 from database import init_db, get_db_connection
 from pydantic import BaseModel, field_validator
 from typing import Optional
@@ -80,3 +80,69 @@ def create_task(task: TaskCreate):
     conn.close()
 
     return dict(new_task)
+
+
+class TaskUpdate(BaseModel):
+    title: str
+    done: bool
+
+    @field_validator("title")
+    def title_must_not_be_empty(cls, value: str):
+        if not value or not value.strip():
+            raise ValueError("Title cannot be empty")
+        return value.strip()
+
+
+@app.put("/tasks/{id}")
+def update_task(id: int, task: TaskUpdate):
+    """Update an existing task in the database."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 1. Check if task exists
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    existing = cursor.fetchone()
+    if existing is None:
+        conn.close()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "Task not found"}
+        )
+
+    # 2. Update task
+    cursor.execute(
+        "UPDATE tasks SET title = ?, done = ? WHERE id = ?",
+        (task.title, int(task.done), id)
+    )
+    conn.commit()
+
+    # 3. Return updated row
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    updated_task = cursor.fetchone()
+    conn.close()
+
+    return dict(updated_task)
+
+
+@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(id: int):
+    """Delete a task by ID."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 1. Check if task exists
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (id,))
+    existing = cursor.fetchone()
+    if existing is None:
+        conn.close()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "Task not found"}
+        )
+
+    # 2. Delete task
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
